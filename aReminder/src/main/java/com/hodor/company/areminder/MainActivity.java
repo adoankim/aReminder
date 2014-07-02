@@ -157,38 +157,12 @@ public class MainActivity extends Activity {
     private void startChronometer(int seconds) {
         mLayoutChronometer.setVisibility(View.VISIBLE);
         mCountDown = new CountDown(seconds*1000, 1000, mChronometer);
-        mCountDown.start();
-    }
-
-    public class CountDown extends CountDownTimer {
-
-        TextView mChrono;
-        units format;
-
-        public CountDown(long millisInFuture, long countDownInterval, TextView chronoView) {
-            super(millisInFuture, countDownInterval);
-            mChrono = chronoView;
-            format = (millisInFuture>=3600000)?units.HOURS:units.MINUTES;
-        }
-
-        @Override
-        public void onFinish() {
-            mChrono.setText("Done!");
-            ((Button)findViewById(R.id.countDownButton)).setText("Close");
-        }
-
-        @Override
-        public void onTick(long millisUntilFinished) {
-            long durationSeconds = millisUntilFinished/1000;
-            String time;
-            if(this.format == units.HOURS) {
-                time = String.format("%02d:%02d:%02d", durationSeconds / 3600,
-                        (durationSeconds % 3600) / 60, (durationSeconds % 60));
-            } else {
-                time = String.format("%02d:%02d", (durationSeconds % 3600) / 60,
-                        (durationSeconds % 60));
+        mCountDown.setOnFinishEventListener(new CountDown.OnFinishEventListener() {
+            @Override
+            public void onFinish() {
+                ((Button) findViewById(R.id.countDownButton)).setText("Close");
             }
-            mChrono.setText(time);
-        }
+        });
+        mCountDown.start();
     }
 }
