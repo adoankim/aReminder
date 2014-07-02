@@ -148,6 +148,7 @@ public class MainActivity extends Activity {
             this.mLayoutChronometer.setVisibility(View.GONE);
         } else {
             this.stopButton.setVisibility(View.VISIBLE);
+            this.closeButton.setVisibility(View.GONE);
             this.closeButton.setEnabled(false);
             this.mLayoutChronometer.setVisibility(View.VISIBLE);
         }
@@ -159,6 +160,7 @@ public class MainActivity extends Activity {
             @Override
             public void onFinish() {
                 stopButton.setVisibility(View.GONE);
+                closeButton.setVisibility(View.VISIBLE);
                 closeButton.setEnabled(true);
             }
         });
