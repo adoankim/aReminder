@@ -1,33 +1,35 @@
 /**
-    aReminder - an Android + Google wear application test for I/O 2014
+ aReminder - an Android + Google wear application test for I/O 2014
 
-    Copyright (C) 2014  Toni Martinez / Adam Doan Kim
+ Copyright (C) 2014  Toni Martinez / Adam Doan Kim
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-*/
+ */
 package com.hodor.company.areminder;
 
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.NumberPicker;
 import android.widget.RadioGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 
@@ -43,6 +45,12 @@ public class MainActivity extends Activity {
     private NumberPicker mPicker;
     private Button start;
     private Button stop;
+
+    private View mLayoutChronometer;
+    private TextView mChronometer;
+    private CountDown mCountDown;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -67,6 +75,10 @@ public class MainActivity extends Activity {
             this.stop.setVisibility(View.GONE);
             this.start.setVisibility(View.VISIBLE);
         }
+
+        mLayoutChronometer = findViewById(R.id.layout_chronometer);
+        mLayoutChronometer.setVisibility(View.GONE);
+        mChronometer = (TextView)findViewById(R.id.chronometer);
     }
 
     @Override
@@ -107,8 +119,17 @@ public class MainActivity extends Activity {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
                 category = (checkedId==R.id.food)?
-                                categories.FOOD:
-                                (checkedId==R.id.work)?categories.WORK:categories.SPORT;
+                        categories.FOOD:
+                        (checkedId==R.id.work)?categories.WORK:categories.SPORT;
+            }
+        });
+        ((Button)findViewById(R.id.countDownButton)).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mCountDown.cancel();
+                stopRemind(null);
+                mLayoutChronometer.setVisibility(View.GONE);
+                mCountDown = null;
             }
         });
     }
@@ -123,10 +144,51 @@ public class MainActivity extends Activity {
         view.setVisibility(View.GONE);
         this.stop.setVisibility(View.VISIBLE);
 
+        startChronometer(mPicker.getValue() * ((unit == units.MINUTES) ? 60 : 3600));
     }
     public void stopRemind(View view){
         stopService(this.remindServiceIntent);
-        view.setVisibility(View.GONE);
+        if(view!=null) {
+            view.setVisibility(View.GONE);
+        }
         this.start.setVisibility(View.VISIBLE);
+    }
+
+    private void startChronometer(int seconds) {
+        mLayoutChronometer.setVisibility(View.VISIBLE);
+        mCountDown = new CountDown(seconds*1000, 1000, mChronometer);
+        mCountDown.start();
+    }
+
+    public class CountDown extends CountDownTimer {
+
+        TextView mChrono;
+        units format;
+
+        public CountDown(long millisInFuture, long countDownInterval, TextView chronoView) {
+            super(millisInFuture, countDownInterval);
+            mChrono = chronoView;
+            format = (millisInFuture>=3600000)?units.HOURS:units.MINUTES;
+        }
+
+        @Override
+        public void onFinish() {
+            mChrono.setText("Done!");
+            ((Button)findViewById(R.id.countDownButton)).setText("Close");
+        }
+
+        @Override
+        public void onTick(long millisUntilFinished) {
+            long durationSeconds = millisUntilFinished/1000;
+            String time;
+            if(this.format == units.HOURS) {
+                time = String.format("%02d:%02d:%02d", durationSeconds / 3600,
+                        (durationSeconds % 3600) / 60, (durationSeconds % 60));
+            } else {
+                time = String.format("%02d:%02d", (durationSeconds % 3600) / 60,
+                        (durationSeconds % 60));
+            }
+            mChrono.setText(time);
+        }
     }
 }
