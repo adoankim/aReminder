@@ -15,6 +15,7 @@ public class CountDown extends CountDownTimer {
     TextView mChrono;
     units format;
     OnFinishEventListener mCallback;
+    private long secondsToFinish;
 
     public interface OnFinishEventListener {
         public void onFinish();
@@ -33,6 +34,7 @@ public class CountDown extends CountDownTimer {
     @Override
     public void onFinish() {
         mChrono.setText("Done!");
+
         if(this.mCallback!=null) {
             mCallback.onFinish();
         }
@@ -40,15 +42,19 @@ public class CountDown extends CountDownTimer {
 
     @Override
     public void onTick(long millisUntilFinished) {
-        long durationSeconds = millisUntilFinished/1000;
+        this.secondsToFinish = millisUntilFinished/1000;
         String time;
         if(this.format == units.HOURS) {
-            time = String.format("%02d:%02d:%02d", durationSeconds / 3600,
-                    (durationSeconds % 3600) / 60, (durationSeconds % 60));
+            time = String.format("%02d:%02d:%02d", this.secondsToFinish / 3600,
+                    (this.secondsToFinish % 3600) / 60, (this.secondsToFinish % 60));
         } else {
-            time = String.format("%02d:%02d", (durationSeconds % 3600) / 60,
-                    (durationSeconds % 60));
+            time = String.format("%02d:%02d", (this.secondsToFinish % 3600) / 60,
+                    (this.secondsToFinish % 60));
         }
         mChrono.setText(time);
+    }
+
+    public long getSecondsToFinish() {
+        return this.secondsToFinish;
     }
 }
