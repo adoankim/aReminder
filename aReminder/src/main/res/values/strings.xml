@@ -2,18 +2,14 @@
 <resources>
 
     <string name="app_name">aReminder</string>
-
+    <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
-
-    <string name="hours">Horas</string>
-    <string name="minutes">Minutos</string>
-
-    <string name="food">Comida</string>
+    <string name="horas">Horas</string>
+    <string name="minutos">Minutos</string>
+    <string name="comida">Comida</string>
     <string name="work">Trabajo</string>
     <string name="sport">Deporte</string>
-
     <string name="buttonText">Remind me!!</string>
-
     <string name="startReminder">Cuando pase el tiempo te llegará una notificación</string>
     <string name="stopButtonText">Stop running reminder!</string>
 
