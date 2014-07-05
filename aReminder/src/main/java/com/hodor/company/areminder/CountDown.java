@@ -1,14 +1,12 @@
 package com.hodor.company.areminder;
 
-import android.app.PendingIntent;
 import android.os.CountDownTimer;
-import android.widget.Button;
 import android.widget.TextView;
 
 import com.hodor.company.areminder.MainActivity.units;
 
 /**
- * Created by E437812 on 02/07/2014.
+ * Created by Toni Martinez on 02/07/2014.
  */
 public class CountDown extends CountDownTimer {
 
