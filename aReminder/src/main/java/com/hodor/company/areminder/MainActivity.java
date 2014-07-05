@@ -22,14 +22,25 @@ package com.hodor.company.areminder;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.Intent;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.NumberPicker;
 import android.widget.RadioGroup;
+import android.widget.Switch;
 import android.widget.TextView;
+
+import java.util.ArrayList;
 
 
 public class MainActivity extends Activity {
@@ -43,8 +54,8 @@ public class MainActivity extends Activity {
     private categories category = categories.FOOD;
 
     private NumberPicker mTimePicker;
-    private RadioGroup mTineUnit;
-    private RadioGroup mCategory;
+    private Switch mTineUnit;
+    private ListView mCategory;
 
     private Button startButton;
     private Button stopButton;
@@ -53,6 +64,8 @@ public class MainActivity extends Activity {
     private View mLayoutChronometer;
     private TextView mChronometer;
     private CountDown mCountDown;
+
+    CategoryAdapter mCategoriesAdapter;
 
 
     @Override
@@ -68,10 +81,10 @@ public class MainActivity extends Activity {
     }
 
     private void initLayout() {
+        this.mCategory = (ListView) findViewById(R.id.category);
         this.startButton = (Button) findViewById(R.id.startButtton);
         this.stopButton = (Button) findViewById(R.id.stopButtton);
-        this.mTineUnit = (RadioGroup) findViewById(R.id.time_unit);
-        this.mCategory = (RadioGroup) findViewById(R.id.category);
+        this.mTineUnit = (Switch) findViewById(R.id.time_unit);
         this.mTimePicker = (NumberPicker) findViewById(R.id.time);
         this.mLayoutChronometer = findViewById(R.id.layout_chronometer);
         this.mChronometer = (TextView)findViewById(R.id.chronometer);
@@ -81,14 +94,26 @@ public class MainActivity extends Activity {
     private void setup() {
         this.mTimePicker.setMinValue(1);
         this.mTimePicker.setDescendantFocusability(NumberPicker.FOCUS_BLOCK_DESCENDANTS);
+
+        initAdapter();
+        this.mCategory.setAdapter(this.mCategoriesAdapter);
+
         if(checkServiceState()){
             //this.startButton.setVisibility(View.GONE);
             //this.stopButton.setVisibility(View.VISIBLE);
-        //}else{
+            //}else{
             //this.stopButton.setVisibility(View.GONE);
             //this.startButton.setVisibility(View.VISIBLE);
         }
         this.mLayoutChronometer.setVisibility(View.GONE);
+    }
+
+    private void initAdapter() {
+        ArrayList<int[]> lCategories = new ArrayList<int[]>();
+        lCategories.add(new int[] {R.string.food, R.drawable.food});
+        lCategories.add(new int[] {R.string.work, R.drawable.work});
+        lCategories.add(new int[] {R.string.sport, R.drawable.sport});
+        this.mCategoriesAdapter = new CategoryAdapter(this, lCategories);
     }
 
     @Override
@@ -107,20 +132,28 @@ public class MainActivity extends Activity {
     }
 
     private void initEvents() {
-        this.mTineUnit.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+        this.mTineUnit.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
-            public void onCheckedChanged(RadioGroup group, int checkedId) {
-                unit = (checkedId == R.id.time_hours) ? units.HOURS : units.MINUTES;
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                unit = (isChecked) ? units.HOURS : units.MINUTES;
                 configureMaxValuePicker();
             }
         });
-
-        this.mCategory.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+        this.mCategory.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onCheckedChanged(RadioGroup group, int checkedId) {
-                category = (checkedId == R.id.food) ?
-                        categories.FOOD :
-                        (checkedId == R.id.work) ? categories.WORK : categories.SPORT;
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                category = ( mCategoriesAdapter.getItemId(position) == R.string.food)?
+                        categories.FOOD:
+                        (mCategoriesAdapter.getItemId(position) == R.string.work)?
+                                categories.WORK:
+                                categories.SPORT;
+
+                for(int i=0; i < parent.getChildCount(); i++) {
+                    ((ImageView)parent.getChildAt(i).findViewById(R.id.picture)).setColorFilter(Utils.getGrayScaleFilter());
+                    parent.getChildAt(i).setAlpha(0.4f);
+                }
+                ((ImageView)view.findViewById(R.id.picture)).clearColorFilter();
+                view.setAlpha(1);
             }
         });
         this.stopButton.setOnClickListener(new View.OnClickListener() {
