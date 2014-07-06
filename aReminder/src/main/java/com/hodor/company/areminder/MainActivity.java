@@ -20,35 +20,43 @@
 package com.hodor.company.areminder;
 
 import android.app.Activity;
-import android.app.ActivityManager;
+import android.content.Context;
 import android.content.Intent;
-import android.graphics.ColorMatrix;
-import android.graphics.ColorMatrixColorFilter;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.NumberPicker;
-import android.widget.RadioGroup;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.hodor.company.areminder.messenger.TimeAsking;
+import com.hodor.company.areminder.messenger.TimeConsumer;
+import com.hodor.company.areminder.service.RemindService;
 
 import java.util.ArrayList;
 
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements TimeConsumer {
 
-    private Intent remindServiceIntent;
-    public static enum units {HOURS, MINUTES};
 
-    public static enum categories {FOOD, WORK, SPORT};
+    public MainActivity() {
+    }
+
+    @Override
+    public Context getContext() {
+        return this;
+    }
+
+    public static enum units {HOURS, MINUTES}
+
+    public static enum categories {FOOD, WORK, SPORT}
 
     private units unit = units.MINUTES;
     private categories category = categories.FOOD;
@@ -64,7 +72,8 @@ public class MainActivity extends Activity {
     private View mLayoutChronometer;
     private TextView mChronometer;
     private CountDown mCountDown;
-
+    private Intent remindServiceIntent;
+    private TimeAsking timeAskingManager;
     CategoryAdapter mCategoriesAdapter;
 
 
@@ -76,7 +85,6 @@ public class MainActivity extends Activity {
         initLayout();
         setup();
         configureMaxValuePicker();
-
         initEvents();
     }
 
@@ -98,14 +106,9 @@ public class MainActivity extends Activity {
         initAdapter();
         this.mCategory.setAdapter(this.mCategoriesAdapter);
 
-        if(checkServiceState()){
-            //this.startButton.setVisibility(View.GONE);
-            //this.stopButton.setVisibility(View.VISIBLE);
-            //}else{
-            //this.stopButton.setVisibility(View.GONE);
-            //this.startButton.setVisibility(View.VISIBLE);
-        }
         this.mLayoutChronometer.setVisibility(View.GONE);
+        this.remindServiceIntent = new Intent(this, RemindService.class);
+        timeAskingManager = new TimeAsking(this, TimeAsking.ACTION.ASK_TIME);
     }
 
     private void initAdapter() {
@@ -118,13 +121,31 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onResume() {
+        //If you want to ask for time left, do this! ;)
+        Log.d("timer", "asking for time left");
+        timeAskingManager.register();
+        timeAskingManager.askForTimeLeft();
         super.onResume();
     }
 
+
     @Override
-    protected void onPause() {
-        super.onPause();
-        Log.d("test", "pausas");
+    public void receiveTimeLeft(Long timeLeft) {
+        //this callback is called when asking for time left
+        Log.d("timer", "time left="+timeLeft);
+    }
+
+    @Override
+    public void timerFinish() {
+        //this callback is called when timer drops
+        Log.d("timer", "Timer finish!");
+    }
+
+    @Override
+    protected void onStop() {
+
+        timeAskingManager.unregister();
+        super.onStop();
     }
 
     private void configureMaxValuePicker() {
@@ -205,29 +226,21 @@ public class MainActivity extends Activity {
     }
 
     public void startRemind(View view) {
-        //Toast.makeText(this, R.string.startReminder, Toast.LENGTH_SHORT).show();
-
-        this.remindServiceIntent.putExtra("time", 3);//mTimePicker.getValue() * ((unit == units.MINUTES) ? 60 : 3600));
+        Toast.makeText(this, R.string.startReminder, Toast.LENGTH_SHORT).show();
+        this.remindServiceIntent.putExtra("time", new Long(15));//mPicker.getValue() * ((unit == units.MINUTES) ? 60 : 3600));
         this.remindServiceIntent.putExtra("unit", unit.ordinal());
         this.remindServiceIntent.putExtra("task", category.ordinal());
-        startService(this.remindServiceIntent);
 
         startChronometer(mTimePicker.getValue() * ((unit == units.MINUTES) ? 60 : 3600));
         setEnableMainActivity(false);
-    }
+        view.setVisibility(View.GONE);
+        this.stopButton.setVisibility(View.VISIBLE);
+        startService(this.remindServiceIntent);
 
-    public void stopRemind(View view) {
+    }
+    public void stopRemind(View view){
         stopService(this.remindServiceIntent);
-    }
-
-    private boolean checkServiceState() {
-        ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
-        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if ("com.hodor.company.RemindService".equals(service.service.getClassName())) {
-                return true;
-            }
-        }
-        this.remindServiceIntent = new Intent(this, RemindService.class);
-        return false;
+        view.setVisibility(View.GONE);
+        this.startButton.setVisibility(View.VISIBLE);
     }
 }
