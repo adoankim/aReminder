@@ -17,7 +17,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
  */
-package com.hodor.company.areminder;
+package com.hodor.company.areminder.ui;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -26,6 +26,8 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.hodor.company.areminder.R;
 
 import java.util.List;
 

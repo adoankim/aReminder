@@ -17,7 +17,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
  */
-package com.hodor.company.areminder;
+package com.hodor.company.areminder.ui;
 
 import android.app.Activity;
 import android.content.Context;
@@ -36,6 +36,8 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.hodor.company.areminder.timer.CountDown;
+import com.hodor.company.areminder.R;
 import com.hodor.company.areminder.messenger.TimeAsking;
 import com.hodor.company.areminder.messenger.TimeConsumer;
 import com.hodor.company.areminder.service.RemindService;
@@ -113,8 +115,8 @@ public class MainActivity extends Activity implements TimeConsumer {
 
     private void initAdapter() {
         ArrayList<int[]> lCategories = new ArrayList<int[]>();
-        lCategories.add(new int[] {R.string.food, R.drawable.food});
-        lCategories.add(new int[] {R.string.work, R.drawable.work});
+        lCategories.add(new int[]{R.string.food, R.drawable.food});
+        lCategories.add(new int[]{R.string.work, R.drawable.work});
         lCategories.add(new int[] {R.string.sport, R.drawable.sport});
         this.mCategoriesAdapter = new CategoryAdapter(this, lCategories);
     }

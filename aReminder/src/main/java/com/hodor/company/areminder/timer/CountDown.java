@@ -17,12 +17,13 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
  */
-package com.hodor.company.areminder;
+package com.hodor.company.areminder.timer;
 
 import android.os.CountDownTimer;
 import android.widget.TextView;
 
-import com.hodor.company.areminder.MainActivity.units;
+import com.hodor.company.areminder.ui.MainActivity;
+import com.hodor.company.areminder.ui.MainActivity.units;
 
 /**
  * Created by Toni Martinez on 02/07/2014.

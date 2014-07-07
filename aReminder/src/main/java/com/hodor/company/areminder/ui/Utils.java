@@ -17,7 +17,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
  */
-package com.hodor.company.areminder;
+package com.hodor.company.areminder.ui;
 
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
