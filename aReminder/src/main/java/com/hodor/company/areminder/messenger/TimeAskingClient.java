@@ -25,8 +25,9 @@ import android.content.Context;
  * Created by adoankim on 06/07/14.
  */
 public interface TimeAskingClient {
-        public Context getContext();
-        public void stopReminder();
+    public Context getContext();
+    public void updateTime(Long timeLeft);
+    public void stopReminder();
     public void pauseReminder();
     public void continueReminder();
 }

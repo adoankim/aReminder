@@ -21,14 +21,13 @@
 
 package com.hodor.company.areminder.service;
 
-import android.app.Notification;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.os.CountDownTimer;
 import android.os.IBinder;
-import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
 import android.util.Log;
 
 import com.hodor.company.areminder.R;
@@ -178,8 +177,7 @@ public class RemindService extends Service implements TimeProducer {
     @Override
     public void continueReminder() {
         if(this.isPaused){
-            timer = new CountDown(this.timeLeft);
-            timer.start();
+            restartTimer(this.timeLeft);
             this.isPaused = false;
         }
 
@@ -188,5 +186,16 @@ public class RemindService extends Service implements TimeProducer {
     @Override
     public Context getContext() {
         return this;
+    }
+
+    @Override
+    public void updateTime(Long timeLeft) {
+        timer.cancel();
+        restartTimer(timeLeft);
+    }
+
+    private void restartTimer(Long timeLeft){
+        timer = new CountDown(timeLeft);
+        timer.start();
     }
 }

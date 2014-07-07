@@ -23,6 +23,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Bundle;
 import android.util.Log;
 
 /**
@@ -33,9 +34,8 @@ public class TimeAsking extends BroadcastReceiver {
     private IntentFilter filter;
     private boolean isRegistered = false;
 
-
     public static enum ROLE{SERVER, CONSUMER};
-    public static enum ACTION{ASK_TIME, STOP_TIMER, PAUSE_TIMER, CONTINUE_TIMER, TIMER_FINISH}
+    public static enum ACTION{ASK_TIME, STOP_TIMER, PAUSE_TIMER, CONTINUE_TIMER, UPDATE_TIME, TIMER_FINISH}
     private final static String actionStrings[];
     private final static String roleStrings[];
     private final TimeAskAction actions[];
@@ -48,6 +48,7 @@ public class TimeAsking extends BroadcastReceiver {
         actionStrings[ACTION.STOP_TIMER.ordinal()] = "com.hodor.company.areminder.STOP_TIMER";
         actionStrings[ACTION.PAUSE_TIMER.ordinal()] = "com.hodor.company.areminder.PAUSE_TIMER";
         actionStrings[ACTION.CONTINUE_TIMER.ordinal()] = "com.hodor.company.areminder.CONTINUE_TIMER";
+        actionStrings[ACTION.UPDATE_TIME.ordinal()] = "com.hodor.company.areminder.CONTINUE_TIMER";
         actionStrings[ACTION.TIMER_FINISH.ordinal()] = "com.hodor.company.areminder.TIMER_FINISH";
 
     }
@@ -60,9 +61,10 @@ public class TimeAsking extends BroadcastReceiver {
             public void perform(Intent intent) {
                 Long timeLeft;
                 int roleId = getRole(intent);
+                Bundle extras = intent.getBundleExtra("extras");
                 
-                if(roleId == ROLE.CONSUMER.ordinal()) {
-                    timeLeft = intent.getLongExtra("message", 0);
+                if(roleId == ROLE.CONSUMER.ordinal() && extras != null) {
+                    timeLeft = extras.getLong("message", 0);
                     ((TimeConsumer) client).receiveTimeLeft(timeLeft);
                 }else if(roleId == ROLE.SERVER.ordinal()){
                     timeLeft = ((TimeProducer) client).giveTimeLeft();
@@ -101,6 +103,18 @@ public class TimeAsking extends BroadcastReceiver {
             }
         };
 
+
+        actions[ACTION.UPDATE_TIME.ordinal()] = new TimeAskAction() {
+            @Override
+            public void perform(Intent intent) {
+                Bundle extras = intent.getBundleExtra("extra");
+                if(client instanceof TimeProducer && extras != null) {
+                    Long timeLeft = extras.getLong("message", 0);
+                    client.updateTime(timeLeft);
+                }
+            }
+        };
+
         actions[ACTION.TIMER_FINISH.ordinal()] = new TimeAskAction() {
             @Override
             public void perform(Intent intent) {
@@ -124,31 +138,29 @@ public class TimeAsking extends BroadcastReceiver {
     }
 
     public void askForTimeLeft(){
-        sendConsumerPetition(ACTION.ASK_TIME);
+        sendConsumerPetition(ACTION.ASK_TIME, null);
     }
 
     public void notifyTimeLeft(long timeLeft){
-        Intent intent = new Intent();
-        intent.setAction(actionStrings[ACTION.ASK_TIME.ordinal()]);
-        intent.setAction(roleStrings[ROLE.SERVER.ordinal()]);
-        intent.putExtra("message", timeLeft);
-        client.getContext().sendBroadcast(intent);
+        Bundle extras = new Bundle();
+        extras.putLong("message", timeLeft);
+        sendConsumerPetition(ACTION.ASK_TIME, extras);
     }
 
     public void notifyFinish(){
-        sendServerPetition(ACTION.TIMER_FINISH);
+        sendServerPetition(ACTION.TIMER_FINISH, null);
     }
 
     public void sendStopTimer() {
-        sendConsumerPetition(ACTION.STOP_TIMER);
+        sendConsumerPetition(ACTION.STOP_TIMER, null);
     }
 
     public void sendPauseTimer() {
-        sendConsumerPetition(ACTION.PAUSE_TIMER);
+        sendConsumerPetition(ACTION.PAUSE_TIMER, null);
     }
 
     public void sendContinueTimer() {
-        sendConsumerPetition(ACTION.CONTINUE_TIMER);
+        sendConsumerPetition(ACTION.CONTINUE_TIMER, null);
     }
 
 
@@ -176,16 +188,24 @@ public class TimeAsking extends BroadcastReceiver {
 
 
 
-    private void sendServerPetition(ACTION action){
-        sendPetition(ROLE.CONSUMER, action);
+    public void sendUpdateTime(Long timeLeft) {
+        Bundle bundle = new Bundle();
+        bundle.putLong("message", timeLeft);
+        sendConsumerPetition(ACTION.UPDATE_TIME, bundle);
     }
 
-    private void sendConsumerPetition(ACTION action){
-        sendPetition(ROLE.SERVER, action);
+
+    private void sendServerPetition(ACTION action, Bundle extras){
+        sendPetition(ROLE.CONSUMER, action, extras);
     }
 
-    private void sendPetition(ROLE role, ACTION action){
+    private void sendConsumerPetition(ACTION action, Bundle extras){
+        sendPetition(ROLE.SERVER, action, extras);
+    }
+
+    private void sendPetition(ROLE role, ACTION action, Bundle extras){
         Intent intent = new Intent();
+        intent.putExtra("extras", extras);
         intent.setAction(actionStrings[action.ordinal()]);
         intent.setAction(roleStrings[role.ordinal()]);
         client.getContext().sendBroadcast(intent);
