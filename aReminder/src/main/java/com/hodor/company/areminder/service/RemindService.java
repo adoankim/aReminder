@@ -27,8 +27,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.CountDownTimer;
 import android.os.IBinder;
-import android.preview.support.v4.app.NotificationManagerCompat;
-import android.preview.support.wearable.notifications.WearableNotifications;
+import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
@@ -146,14 +145,11 @@ public class RemindService extends Service implements TimeProducer {
                             .setSmallIcon(getNotificationIcon())
                             .setContentText(getNotificationText());
 
-            Notification notification =
-                    new WearableNotifications.Builder(notificationBuilder)
-                            .build();
             // Get an instance of the NotificationManager service
             NotificationManagerCompat notificationManager =
                     NotificationManagerCompat.from(RemindService.this);
             // Build the notification and issues it with notification manager.
-            notificationManager.notify(1, notification);
+            notificationManager.notify(1, notificationBuilder.build());
             timeAskingManager.notifyFinish();
             timer = null;
         }
