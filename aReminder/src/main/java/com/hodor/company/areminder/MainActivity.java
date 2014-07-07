@@ -49,11 +49,6 @@ public class MainActivity extends Activity implements TimeConsumer {
     public MainActivity() {
     }
 
-    @Override
-    public Context getContext() {
-        return this;
-    }
-
     public static enum units {HOURS, MINUTES}
 
     public static enum categories {FOOD, WORK, SPORT}
@@ -88,6 +83,8 @@ public class MainActivity extends Activity implements TimeConsumer {
         initEvents();
     }
 
+
+
     private void initLayout() {
         this.mCategory = (ListView) findViewById(R.id.category);
         this.startButton = (Button) findViewById(R.id.startButtton);
@@ -108,7 +105,10 @@ public class MainActivity extends Activity implements TimeConsumer {
 
         this.mLayoutChronometer.setVisibility(View.GONE);
         this.remindServiceIntent = new Intent(this, RemindService.class);
-        timeAskingManager = new TimeAsking(this, TimeAsking.ACTION.ASK_TIME);
+        timeAskingManager = new TimeAsking(this, TimeAsking.ROLE.CONSUMER, new TimeAsking.ACTION[]{
+                TimeAsking.ACTION.TIMER_FINISH,
+                TimeAsking.ACTION.ASK_TIME
+        });
     }
 
     private void initAdapter() {
@@ -129,6 +129,25 @@ public class MainActivity extends Activity implements TimeConsumer {
     }
 
 
+    @Override
+    public Context getContext() {
+        return this;
+    }
+
+    @Override
+    public void stopReminder() {
+        this.timeAskingManager.sendStopTimer();
+    }
+
+    @Override
+    public void pauseReminder() {
+        this.timeAskingManager.sendPauseTimer();
+    }
+
+    @Override
+    public void continueReminder() {
+        this.timeAskingManager.sendContinueTimer();
+    }
     @Override
     public void receiveTimeLeft(Long timeLeft) {
         //this callback is called when asking for time left

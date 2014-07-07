@@ -44,6 +44,7 @@ public class RemindService extends Service implements TimeProducer {
     private Long timeLeft;
     private TimeAsking timeAskingManager;
     private CountDownTimer timer;
+    private boolean isPaused = false;
 
     @Override
     public IBinder onBind(Intent intent) { return null;}
@@ -51,7 +52,12 @@ public class RemindService extends Service implements TimeProducer {
     @Override
     public void onCreate() {
         super.onCreate();
-        timeAskingManager = new TimeAsking(this, TimeAsking.ACTION.SEND_TIME);
+        timeAskingManager = new TimeAsking(this, TimeAsking.ROLE.SERVER ,new TimeAsking.ACTION[] {
+                TimeAsking.ACTION.ASK_TIME,
+                TimeAsking.ACTION.STOP_TIMER,
+                TimeAsking.ACTION.PAUSE_TIMER,
+                TimeAsking.ACTION.CONTINUE_TIMER
+        });
 
     }
 
@@ -59,7 +65,7 @@ public class RemindService extends Service implements TimeProducer {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d("Service", "staring!");
-        this.time = intent.getLongExtra("time", 0);
+        this.time = intent.getLongExtra("time", 0) * 1000;
         this.unit = intent.getIntExtra("unit", 0);
         this.task = intent.getIntExtra("task", 0);
         this.timeLeft = time;
@@ -125,7 +131,7 @@ public class RemindService extends Service implements TimeProducer {
 
         @Override
         public void onTick(long l) {
-            timeLeft -= 1000;
+            timeLeft = l;
             Log.d("Service", "Tick " + timeLeft);
         }
 
@@ -148,6 +154,7 @@ public class RemindService extends Service implements TimeProducer {
                     NotificationManagerCompat.from(RemindService.this);
             // Build the notification and issues it with notification manager.
             notificationManager.notify(1, notification);
+            timeAskingManager.notifyFinish();
             timer = null;
         }
     }
@@ -162,6 +169,24 @@ public class RemindService extends Service implements TimeProducer {
         Log.d("reminder", "Don't stop me nowww!");
         timer.cancel();
         this.stopSelf();
+    }
+
+    @Override
+    public void pauseReminder() {
+        if(!this.isPaused) {
+            timer.cancel();
+            this.isPaused = true;
+        }
+    }
+
+    @Override
+    public void continueReminder() {
+        if(this.isPaused){
+            timer = new CountDown(this.timeLeft);
+            timer.start();
+            this.isPaused = false;
+        }
+
     }
 
     @Override
