@@ -26,4 +26,7 @@ import android.content.Context;
  */
 public interface TimeAskingClient {
         public Context getContext();
+        public void stopReminder();
+    public void pauseReminder();
+    public void continueReminder();
 }

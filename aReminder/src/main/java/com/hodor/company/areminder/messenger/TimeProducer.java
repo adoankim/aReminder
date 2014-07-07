@@ -24,5 +24,4 @@ package com.hodor.company.areminder.messenger;
  */
 public interface TimeProducer extends TimeAskingClient {
     public Long giveTimeLeft();
-    public void stopReminder();
 }

@@ -33,14 +33,21 @@ public class TimeAsking extends BroadcastReceiver {
     private IntentFilter filter;
     private boolean isRegistered = false;
 
-    public static enum ACTION{ASK_TIME, SEND_TIME, TIMER_FINISH}
+
+    public static enum ROLE{SERVER, CONSUMER};
+    public static enum ACTION{ASK_TIME, STOP_TIMER, PAUSE_TIMER, CONTINUE_TIMER, TIMER_FINISH}
     private final static String actionStrings[];
+    private final static String roleStrings[];
     private final TimeAskAction actions[];
     static{
-
+        roleStrings = new String[ROLE.values().length];
+        roleStrings[ROLE.SERVER.ordinal()] = "com.hodor.company.areminder.SERVER";
+        roleStrings[ROLE.CONSUMER.ordinal()] = "com.hodor.company.areminder.CONSUMER";
         actionStrings = new String[ACTION.values().length];
         actionStrings[ACTION.ASK_TIME.ordinal()] = "com.hodor.company.areminder.ASK_TIME";
-        actionStrings[ACTION.SEND_TIME.ordinal()] = "com.hodor.company.areminder.SEND_TIME";
+        actionStrings[ACTION.STOP_TIMER.ordinal()] = "com.hodor.company.areminder.STOP_TIMER";
+        actionStrings[ACTION.PAUSE_TIMER.ordinal()] = "com.hodor.company.areminder.PAUSE_TIMER";
+        actionStrings[ACTION.CONTINUE_TIMER.ordinal()] = "com.hodor.company.areminder.CONTINUE_TIMER";
         actionStrings[ACTION.TIMER_FINISH.ordinal()] = "com.hodor.company.areminder.TIMER_FINISH";
 
     }
@@ -51,53 +58,99 @@ public class TimeAsking extends BroadcastReceiver {
         actions[ACTION.ASK_TIME.ordinal()] = new TimeAskAction() {
             @Override
             public void perform(Intent intent) {
-                Long timeLeft = intent.getLongExtra("message", 0);
-                Log.d("Activity", "reciving time left" + timeLeft);
-                ((TimeConsumer)client).receiveTimeLeft(timeLeft);
+                Long timeLeft;
+                int roleId = getRole(intent);
+                
+                if(roleId == ROLE.CONSUMER.ordinal()) {
+                    timeLeft = intent.getLongExtra("message", 0);
+                    ((TimeConsumer) client).receiveTimeLeft(timeLeft);
+                }else if(roleId == ROLE.SERVER.ordinal()){
+                    timeLeft = ((TimeProducer) client).giveTimeLeft();
+                    TimeAsking.this.notifyTimeLeft(timeLeft);
+                }
             }
         };
 
-        actions[ACTION.SEND_TIME.ordinal()] = new TimeAskAction() {
+
+        actions[ACTION.STOP_TIMER.ordinal()] = new TimeAskAction() {
             @Override
             public void perform(Intent intent) {
-                Long timeLeft = ((TimeProducer)client).giveTimeLeft();
-                Log.d("Service", "sending time left" + timeLeft);
-                TimeAsking.this.notifyTimeLeft(timeLeft);
+                if(client instanceof TimeProducer) {
+                    client.stopReminder();
+                }
+            }
+        };
 
+
+        actions[ACTION.PAUSE_TIMER.ordinal()] = new TimeAskAction() {
+            @Override
+            public void perform(Intent intent) {
+                if(client instanceof TimeProducer) {
+                    client.pauseReminder();
+                }
+            }
+        };
+
+
+        actions[ACTION.CONTINUE_TIMER.ordinal()] = new TimeAskAction() {
+            @Override
+            public void perform(Intent intent) {
+                if(client instanceof TimeProducer) {
+                    client.continueReminder();
+                }
             }
         };
 
         actions[ACTION.TIMER_FINISH.ordinal()] = new TimeAskAction() {
             @Override
             public void perform(Intent intent) {
-                Long timeLeft = ((TimeProducer)client).giveTimeLeft();
-                TimeAsking.this.notifyTimeLeft(timeLeft);
-
+                if(client instanceof TimeProducer) {
+                    ((TimeConsumer) client).timerFinish();
+                }
             }
         };
 
     }
 
-    public TimeAsking(TimeAskingClient client, ACTION action){
+    public TimeAsking(TimeAskingClient client, ROLE role, ACTION ... actions){
         this.client = client;
         filter = new IntentFilter();
-        filter.addAction(actionStrings[action.ordinal()]);
+        filter.addAction(roleStrings[role.ordinal()]);
+        for(ACTION action : actions) {
+            filter.addAction(actionStrings[action.ordinal()]);
+        }
         client.getContext().registerReceiver(this, filter);
         isRegistered = true;
     }
 
     public void askForTimeLeft(){
-        Intent intent = new Intent();
-        intent.setAction(actionStrings[ACTION.SEND_TIME.ordinal()]);
-        client.getContext().sendBroadcast(intent);
+        sendConsumerPetition(ACTION.ASK_TIME);
     }
 
     public void notifyTimeLeft(long timeLeft){
         Intent intent = new Intent();
         intent.setAction(actionStrings[ACTION.ASK_TIME.ordinal()]);
+        intent.setAction(roleStrings[ROLE.SERVER.ordinal()]);
         intent.putExtra("message", timeLeft);
         client.getContext().sendBroadcast(intent);
     }
+
+    public void notifyFinish(){
+        sendServerPetition(ACTION.TIMER_FINISH);
+    }
+
+    public void sendStopTimer() {
+        sendConsumerPetition(ACTION.STOP_TIMER);
+    }
+
+    public void sendPauseTimer() {
+        sendConsumerPetition(ACTION.PAUSE_TIMER);
+    }
+
+    public void sendContinueTimer() {
+        sendConsumerPetition(ACTION.CONTINUE_TIMER);
+    }
+
 
     public void unregister(){
         if(isRegistered) {
@@ -122,6 +175,30 @@ public class TimeAsking extends BroadcastReceiver {
     }
 
 
+
+    private void sendServerPetition(ACTION action){
+        sendPetition(ROLE.CONSUMER, action);
+    }
+
+    private void sendConsumerPetition(ACTION action){
+        sendPetition(ROLE.SERVER, action);
+    }
+
+    private void sendPetition(ROLE role, ACTION action){
+        Intent intent = new Intent();
+        intent.setAction(actionStrings[action.ordinal()]);
+        intent.setAction(roleStrings[role.ordinal()]);
+        client.getContext().sendBroadcast(intent);
+    }
+
+
+    private int getRole(Intent intent) {
+        String role = intent.getStringExtra("ROLE");
+        if(role  == null){
+            return -1;
+        }
+        return java.util.Arrays.binarySearch(roleStrings, role);
+    }
     private interface TimeAskAction{
         public void perform(Intent intent);
     }
