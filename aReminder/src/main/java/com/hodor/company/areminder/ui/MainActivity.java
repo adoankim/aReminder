@@ -137,6 +137,11 @@ public class MainActivity extends Activity implements TimeConsumer {
     }
 
     @Override
+    public void updateTime(Long timeLeft) {
+        timeAskingManager.sendUpdateTime(timeLeft);
+    }
+
+    @Override
     public void stopReminder() {
         this.timeAskingManager.sendStopTimer();
     }
