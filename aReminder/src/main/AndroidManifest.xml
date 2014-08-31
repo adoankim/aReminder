@@ -18,8 +18,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <service android:name=".service.RemindService">
-        </service>
+        <service android:name=".service.TimerService"  />
     </application>
+
+    <uses-permission android:name="android.permission.VIBRATE" />
 
 </manifest>

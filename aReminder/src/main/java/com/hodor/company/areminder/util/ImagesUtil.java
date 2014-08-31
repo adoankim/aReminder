@@ -17,7 +17,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
  */
-package com.hodor.company.areminder.ui;
+package com.hodor.company.areminder.util;
 
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
@@ -25,7 +25,7 @@ import android.graphics.ColorMatrixColorFilter;
 /**
  * Created by toni on 5/07/14.
  */
-public class Utils {
+public class ImagesUtil {
     public static ColorMatrixColorFilter getGrayScaleFilter() {
         ColorMatrix matrix = new ColorMatrix();
         matrix.setSaturation(0);

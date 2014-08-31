@@ -28,17 +28,19 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.hodor.company.areminder.R;
+import com.hodor.company.areminder.model.CategoryModel;
+import com.hodor.company.areminder.util.ImagesUtil;
 
 import java.util.List;
 
 /**
  * Created by toni on 5/07/14.
  */
-public class CategoryAdapter extends ArrayAdapter<int[]> {
+public class CategoryAdapter extends ArrayAdapter<CategoryModel> {
 
-    private List<int[]> mCategories;
+    private List<CategoryModel> mCategories;
 
-    public CategoryAdapter(Context context, List<int[]> values) {
+    public CategoryAdapter(Context context, List<CategoryModel> values) {
         super(context, R.layout.category_item, values);
         this.mCategories = values;
     }
@@ -51,10 +53,10 @@ public class CategoryAdapter extends ArrayAdapter<int[]> {
             rowView = inflater.inflate(R.layout.category_item, parent, false);
         }
 
-        ((TextView)rowView.findViewById(R.id.text)).setText(this.mCategories.get(position)[0]);
-        ((ImageView)rowView.findViewById(R.id.picture)).setImageResource(this.mCategories.get(position)[1]);
+        ((TextView)rowView.findViewById(R.id.text)).setText(this.mCategories.get(position).getName());
+        ((ImageView)rowView.findViewById(R.id.picture)).setImageResource(this.mCategories.get(position).getIcon());
         if (position>0) {
-            ((ImageView) rowView.findViewById(R.id.picture)).setColorFilter(Utils.getGrayScaleFilter());
+            ((ImageView) rowView.findViewById(R.id.picture)).setColorFilter(ImagesUtil.getGrayScaleFilter());
             rowView.setAlpha(0.4f);
         }
 
@@ -63,6 +65,6 @@ public class CategoryAdapter extends ArrayAdapter<int[]> {
 
     @Override
     public long getItemId(int position) {
-        return this.mCategories.get(position)[0];
+        return this.mCategories.get(position).getIcon();
     }
 }
