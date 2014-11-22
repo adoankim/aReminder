@@ -64,9 +64,8 @@ public class TimerService extends IntentService
         startActivity( intent );
 
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
-        //notificationManager.cancel( 1 );
         Notification notification = NotificationCenter.getNotificationCenter(this).buildFinishNotification(category);
-        notificationManager.notify(MainActivity.NOTIFICATION_ID, notification);
+        notificationManager.notify(MainActivity.END_NOTIFICATION_ID, notification);
     }
 
     private void removeAlarm() {

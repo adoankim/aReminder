@@ -54,6 +54,7 @@ public class MainActivity extends Activity {
     private static final String TAG = MainActivity.class.getSimpleName();
 
     public static final int NOTIFICATION_ID = 13;
+    public static final int END_NOTIFICATION_ID = 14;
 
     public static final String ACTION_REMOVE_TIMER = "action_remove_timer";
     public static final String ACTION_SHOW_ALARM = "action_show_alarm";
@@ -96,6 +97,8 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        NotificationManagerCompat notificationManager = getNotificationManager();
+        notificationManager.cancel(END_NOTIFICATION_ID);
         if (!processRequest()) {
             setContentView(R.layout.activity_main);
 
@@ -245,7 +248,6 @@ public class MainActivity extends Activity {
     }
 
     public void startAlarm() {
-        Log.d("T", "Category: " + category.ordinal());
         long time = getTime();
         NotificationManagerCompat notificationManager = getNotificationManager();
         notificationManager.cancel(NOTIFICATION_ID);
