@@ -21,6 +21,7 @@ package com.hodor.company.areminder.ui;
 
 import android.app.Activity;
 import android.app.AlarmManager;
+import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
@@ -52,7 +53,7 @@ public class MainActivity extends Activity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
-    private static final int NOTIFICATION_ID = 13;
+    public static final int NOTIFICATION_ID = 13;
 
     public static final String ACTION_REMOVE_TIMER = "action_remove_timer";
     public static final String ACTION_SHOW_ALARM = "action_show_alarm";
@@ -250,7 +251,12 @@ public class MainActivity extends Activity {
         Intent removeIntent = new Intent(ACTION_REMOVE_TIMER, null, this, TimerService.class);
         PendingIntent pendingRemoveIntent = PendingIntent.getService(this, 0, removeIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-        notificationManager.notify(NOTIFICATION_ID, buildNotification(time * 1000, pendingRemoveIntent));
+        Intent showIntent = new Intent( this, MainActivity.class )
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                .putExtra(MainActivity.ACTION_REMOVE_TIMER, 1);
+        PendingIntent pendingShowIntent = PendingIntent.getActivity(this, 0, showIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        Notification notification = NotificationCenter.getNotificationCenter(this).buildAlarmNotification(category.ordinal(), (int) (time*1000), pendingRemoveIntent, pendingShowIntent);
+        notificationManager.notify(NOTIFICATION_ID, notification);
         registerAlarmManager(time * 1000);
     }
 
@@ -269,4 +275,6 @@ public class MainActivity extends Activity {
         long time = System.currentTimeMillis() + duration;
         alarmManager.setExact(AlarmManager.RTC_WAKEUP, time, pendingIntent);
     }
+
+
 }

@@ -12,9 +12,11 @@
     <string name="category_food">Comida</string>
     <string name="category_work">Trabajo</string>
     <string name="category_sport">Deporte</string>
+    <string name="category_default">Default</string>
 
     <string name="startReminder">Cuando pase el tiempo te llegará una notificación</string>
 
     <string name="finish">Ha terminado tu recordatorio de %1$s</string>
+    <string name="buttonText">Start reminder</string>
 
 </resources>

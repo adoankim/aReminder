@@ -1,3 +1,22 @@
+/**
+ aReminder - an Android + Google wear application test for I/O 2014
+
+ Copyright (C) 2014  Toni Martinez / Adam Doan Kim
+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package com.hodor.company.areminder.ui;
 
 import android.app.Notification;
@@ -5,7 +24,6 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.graphics.BitmapFactory;
 import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.NotificationManagerCompat;
 
 import com.hodor.company.areminder.R;
 import com.hodor.company.areminder.util.SimpleSharedPreferences;
@@ -20,12 +38,10 @@ public class NotificationCenter {
     private static String TITLE = "aReminder";
 
     private Context mContext;
-    private NotificationManagerCompat mNotificationManager;
     private SimpleSharedPreferences mPreference;
 
     public NotificationCenter(Context context) {
         this.mContext = context;
-        this.mNotificationManager = NotificationManagerCompat.from(this.mContext);
         this.mPreference = SimpleSharedPreferences.getSimpleSharedPreference(context);
     }
 
@@ -37,7 +53,7 @@ public class NotificationCenter {
     }
 
     private NotificationCompat.Builder getBaseBuilder(int category) {
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this.mContext)
+        return new NotificationCompat.Builder(this.mContext)
                 .setSmallIcon(getNotificationIcon(category))
                 .setContentTitle(TITLE)
                 .setLargeIcon(
@@ -46,28 +62,27 @@ public class NotificationCenter {
                                 getNotificationIcon(category)
                         )
                 );
-        return builder;
     }
 
-    public Notification buildAlarmNotification(int category, int duration, PendingIntent pendingIntent ) {
+    public Notification buildAlarmNotification(int category, int duration, PendingIntent remove, PendingIntent show) {
         NotificationCompat.Builder builder = getBaseBuilder(category);
         return builder.setContentText(getNotificationText(duration))
                 .setUsesChronometer(true)
                 .setWhen(this.mPreference.read(MainActivity.ALARM_TIME, 0))
                 .addAction(android.R.drawable.ic_delete,
                         this.mContext.getString(R.string.action_remove_timer),
-                        pendingIntent)
+                        remove)
                 .addAction(android.R.drawable.ic_lock_idle_alarm,
                         this.mContext.getString(R.string.action_expand_timer),
-                        pendingIntent)
+                        show)
                 .build();
     }
 
-    private Notification buildFinishNotification(int category) {
+    public Notification buildFinishNotification(int category) {
         NotificationCompat.Builder builder = getBaseBuilder(category);
         String text = String.format(
                 this.mContext.getString(R.string.finish),
-                this.mContext.getString(category)
+                this.getNotificationTitle(category)
         );
         builder.setContentText(text);
         return builder.build();
@@ -91,16 +106,20 @@ public class NotificationCenter {
     }
 
     private CharSequence getNotificationTitle(int category) {
+        int stringID = R.string.category_default;
         switch (category) {
             case 0:
-                return "Comida";
+                stringID = R.string.category_food;
+                break;
             case 1:
-                return "Trabajo";
+                stringID = R.string.category_work;
+                break;
             case 2:
-                return "Deporte";
+                stringID = R.string.category_sport;
+                break;
 
         }
-        return "nada en especial";
+        return this.mContext.getString(stringID);
     }
 
 }
