@@ -93,7 +93,7 @@ public class NotificationCenter {
                 this.mContext.getString(R.string.finish),
                 this.getNotificationTitle(category)
         );
-        builder.setContentText(text);
+        builder.setContentText(text).setVibrate(new long[]{0, 1000});
         return builder.build();
     }
 
