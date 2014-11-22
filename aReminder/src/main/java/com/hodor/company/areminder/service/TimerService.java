@@ -47,14 +47,14 @@ public class TimerService extends IntentService
         String action = intent.getAction();
 
         if( MainActivity.ACTION_SHOW_ALARM.equals( action ) ) {
-            showAlarm();
+            showAlarm(intent.getIntExtra("category", R.string.category_default));
         } else if( MainActivity.ACTION_REMOVE_TIMER.equals( action ) ) {
             Log.e(TAG, "Remove alarm");
             removeAlarm();
         }
     }
 
-    private void showAlarm() {
+    private void showAlarm(int category) {
         final Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         long[] pattern = { 0, getResources().getInteger( R.integer.vibration_duration ) };
         v.vibrate( pattern, -1 );
@@ -64,8 +64,7 @@ public class TimerService extends IntentService
         startActivity( intent );
 
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
-        notificationManager.cancel( 1 );
-        int category = 0;
+        //notificationManager.cancel( 1 );
         Notification notification = NotificationCenter.getNotificationCenter(this).buildFinishNotification(category);
         notificationManager.notify(MainActivity.NOTIFICATION_ID, notification);
     }

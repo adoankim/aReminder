@@ -168,9 +168,10 @@ public class MainActivity extends Activity {
         this.mCategory.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                category = (mCategoriesAdapter.getItemId(position) == R.string.category_food) ?
+                String checkedName = mCategoriesAdapter.getItem(position).getName();
+                category = (checkedName.equals(getString(R.string.category_food))) ?
                         categories.FOOD :
-                        (mCategoriesAdapter.getItemId(position) == R.string.category_work) ?
+                        (checkedName.equals(getString(R.string.category_work))) ?
                                 categories.WORK :
                                 categories.SPORT;
 
@@ -244,6 +245,7 @@ public class MainActivity extends Activity {
     }
 
     public void startAlarm() {
+        Log.d("T", "Category: " + category.ordinal());
         long time = getTime();
         NotificationManagerCompat notificationManager = getNotificationManager();
         notificationManager.cancel(NOTIFICATION_ID);
@@ -270,6 +272,7 @@ public class MainActivity extends Activity {
     private void registerAlarmManager(long duration) {
         AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(ACTION_SHOW_ALARM, null, this, TimerService.class);
+        intent.putExtra("category", category.ordinal());
         PendingIntent pendingIntent = PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         long time = System.currentTimeMillis() + duration;
