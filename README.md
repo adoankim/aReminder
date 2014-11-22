@@ -1,5 +1,7 @@
-[![Stories in Ready](https://badge.waffle.io/adoankim/areminder.png?label=ready&title=Ready)](https://waffle.io/adoankim/areminder)
-[![Stories in Ready](https://badge.waffle.io/adoankim/areminder.png?label=ready&title=Ready)](https://waffle.io/adoankim/areminder)
+[![Stories in Backlog](https://badge.waffle.io/adoankim/areminder.svg?label=backlog&title=Backlog)](http://waffle.io/adoankim/areminder)
+[![Stories in Ready](https://badge.waffle.io/adoankim/areminder.svg?label=ready&title=Ready)](http://waffle.io/adoankim/areminder)
+[![Stories in In Progress](https://badge.waffle.io/adoankim/areminder.svg?label=in progress&title=In Progress)](http://waffle.io/adoankim/areminder)
+[![Stories in Done](https://badge.waffle.io/adoankim/areminder.svg?label=done&title=Done)](http://waffle.io/adoankim/areminder)
 aReminder
 =========
 
