@@ -95,10 +95,16 @@ public class MainActivity extends Activity {
 
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    protected void onStop() {
+        super.onStop();
+
         NotificationManagerCompat notificationManager = getNotificationManager();
         notificationManager.cancel(END_NOTIFICATION_ID);
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         if (!processRequest()) {
             setContentView(R.layout.activity_main);
 
