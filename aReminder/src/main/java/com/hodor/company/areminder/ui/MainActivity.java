@@ -246,6 +246,8 @@ public class MainActivity extends Activity {
         startChronometer(getTime());
 
         setEnableMainActivity(false);
+        NotificationManagerCompat notificationManager = getNotificationManager();
+        notificationManager.cancel(END_NOTIFICATION_ID);
         startAlarm();
     }
 
