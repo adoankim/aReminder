@@ -23,11 +23,16 @@ import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.graphics.BitmapFactory;
+import android.os.SystemClock;
 import android.support.v4.app.NotificationCompat;
 
 import com.hodor.company.areminder.R;
 import com.hodor.company.areminder.util.SimpleSharedPreferences;
 import com.hodor.company.areminder.util.TimeUtil;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 /**
  * Created by toni on 31/08/14.
@@ -67,8 +72,9 @@ public class NotificationCenter {
     public Notification buildAlarmNotification(int category, int duration, PendingIntent remove, PendingIntent show) {
         NotificationCompat.Builder builder = getBaseBuilder(category);
         return builder.setContentText(getNotificationText(duration))
+                .setContentText(TimeUtil.getTimeString( duration ) )
                 .setUsesChronometer(true)
-                .setWhen(this.mPreference.read(MainActivity.ALARM_TIME, 0))
+                .setWhen( System.currentTimeMillis() + duration )
                 .addAction(android.R.drawable.ic_delete,
                         this.mContext.getString(R.string.action_remove_timer),
                         remove)
@@ -76,6 +82,9 @@ public class NotificationCenter {
                         this.mContext.getString(R.string.action_expand_timer),
                         show)
                 .build();
+
+
+
     }
 
     public Notification buildFinishNotification(int category) {
