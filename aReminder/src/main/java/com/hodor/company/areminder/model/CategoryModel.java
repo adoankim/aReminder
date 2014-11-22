@@ -15,21 +15,31 @@
 
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
  */
-package com.hodor.company.areminder.ui;
 
-import android.graphics.ColorMatrix;
-import android.graphics.ColorMatrixColorFilter;
+package com.hodor.company.areminder.model;
 
-/**
- * Created by toni on 5/07/14.
- */
-public class Utils {
-    public static ColorMatrixColorFilter getGrayScaleFilter() {
-        ColorMatrix matrix = new ColorMatrix();
-        matrix.setSaturation(0);
-        ColorMatrixColorFilter filter = new ColorMatrixColorFilter(matrix);
-        return filter;
+import com.hodor.company.areminder.R;
+
+public class CategoryModel {
+    private int icon = R.drawable.ic_launcher;
+    private String name;
+
+    public CategoryModel(String name) {
+        this.name = name;
+    }
+
+    public CategoryModel(String name, int icon) {
+        this.icon = icon;
+        this.name = name;
+    }
+
+
+    public String getName() {
+        return this.name;
+    }
+
+    public int getIcon() {
+        return this.icon;
     }
 }

@@ -17,11 +17,19 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
  */
-package com.hodor.company.areminder.messenger;
+package com.hodor.company.areminder.util;
+
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
 
 /**
- * Created by adoankim on 06/07/14.
+ * Created by toni on 5/07/14.
  */
-public interface TimeProducer extends TimeAskingClient {
-    public Long giveTimeLeft();
+public class ImagesUtil {
+    public static ColorMatrixColorFilter getGrayScaleFilter() {
+        ColorMatrix matrix = new ColorMatrix();
+        matrix.setSaturation(0);
+        ColorMatrixColorFilter filter = new ColorMatrixColorFilter(matrix);
+        return filter;
+    }
 }

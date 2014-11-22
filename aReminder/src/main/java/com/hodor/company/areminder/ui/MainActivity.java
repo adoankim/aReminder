@@ -20,9 +20,13 @@
 package com.hodor.company.areminder.ui;
 
 import android.app.Activity;
+import android.app.AlarmManager;
+import android.app.Notification;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.NotificationManagerCompat;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -36,19 +40,34 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.hodor.company.areminder.timer.CountDown;
 import com.hodor.company.areminder.R;
-import com.hodor.company.areminder.messenger.TimeAsking;
-import com.hodor.company.areminder.messenger.TimeConsumer;
-import com.hodor.company.areminder.service.RemindService;
+import com.hodor.company.areminder.model.CategoryModel;
+import com.hodor.company.areminder.service.TimerService;
+import com.hodor.company.areminder.timer.CountDown;
+import com.hodor.company.areminder.util.ImagesUtil;
 
 import java.util.ArrayList;
 
 
-public class MainActivity extends Activity implements TimeConsumer {
+public class MainActivity extends Activity {
 
+    private static final String TAG = MainActivity.class.getSimpleName();
+
+    public static final int NOTIFICATION_ID = 13;
+
+    public static final String ACTION_REMOVE_TIMER = "action_remove_timer";
+    public static final String ACTION_SHOW_ALARM = "action_show_alarm";
+
+    public static final String ALARM_TIME = "alarm_time";
 
     public MainActivity() {
+    }
+
+    public long getTime() {
+        if (this.mTimePicker != null) {
+            return mTimePicker.getValue() * ((unit == units.MINUTES) ? 1:60);//60 : 3600);
+        }
+        return 0;
     }
 
     public static enum units {HOURS, MINUTES}
@@ -69,22 +88,40 @@ public class MainActivity extends Activity implements TimeConsumer {
     private View mLayoutChronometer;
     private TextView mChronometer;
     private CountDown mCountDown;
-    private Intent remindServiceIntent;
-    private TimeAsking timeAskingManager;
     CategoryAdapter mCategoriesAdapter;
+
+    private NotificationManagerCompat mNotificationManager = null;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        if (!processRequest()) {
+            setContentView(R.layout.activity_main);
 
-        initLayout();
-        setup();
-        configureMaxValuePicker();
-        initEvents();
+            initLayout();
+            setup();
+            configureMaxValuePicker();
+            initEvents();
+        }
     }
 
+    private boolean processRequest() {
+        if (getIntent().getIntExtra(ACTION_REMOVE_TIMER, 0) > 0) {
+            Log.d(TAG, "boorando");
+            stopAlarm();
+            finish();
+            return true;
+        }
+        return false;
+    }
+
+    private NotificationManagerCompat getNotificationManager() {
+        if (this.mNotificationManager == null) {
+            this.mNotificationManager = NotificationManagerCompat.from(this);
+        }
+        return this.mNotificationManager;
+    }
 
 
     private void initLayout() {
@@ -94,8 +131,8 @@ public class MainActivity extends Activity implements TimeConsumer {
         this.mTineUnit = (Switch) findViewById(R.id.time_unit);
         this.mTimePicker = (NumberPicker) findViewById(R.id.time);
         this.mLayoutChronometer = findViewById(R.id.layout_chronometer);
-        this.mChronometer = (TextView)findViewById(R.id.chronometer);
-        this.closeButton = (ImageButton)findViewById(R.id.close);
+        this.mChronometer = (TextView) findViewById(R.id.chronometer);
+        this.closeButton = (ImageButton) findViewById(R.id.close);
     }
 
     private void setup() {
@@ -106,72 +143,14 @@ public class MainActivity extends Activity implements TimeConsumer {
         this.mCategory.setAdapter(this.mCategoriesAdapter);
 
         this.mLayoutChronometer.setVisibility(View.GONE);
-        this.remindServiceIntent = new Intent(this, RemindService.class);
-        timeAskingManager = new TimeAsking(this, TimeAsking.ROLE.CONSUMER, new TimeAsking.ACTION[]{
-                TimeAsking.ACTION.TIMER_FINISH,
-                TimeAsking.ACTION.ASK_TIME
-        });
     }
 
     private void initAdapter() {
-        ArrayList<int[]> lCategories = new ArrayList<int[]>();
-        lCategories.add(new int[]{R.string.food, R.drawable.food});
-        lCategories.add(new int[]{R.string.work, R.drawable.work});
-        lCategories.add(new int[] {R.string.sport, R.drawable.sport});
+        ArrayList<CategoryModel> lCategories = new ArrayList<CategoryModel>();
+        lCategories.add(new CategoryModel(getString(R.string.category_food), R.drawable.food));
+        lCategories.add(new CategoryModel(getString(R.string.category_work), R.drawable.work));
+        lCategories.add(new CategoryModel(getString(R.string.category_sport), R.drawable.sport));
         this.mCategoriesAdapter = new CategoryAdapter(this, lCategories);
-    }
-
-    @Override
-    protected void onResume() {
-        //If you want to ask for time left, do this! ;)
-        Log.d("timer", "asking for time left");
-        timeAskingManager.register();
-        timeAskingManager.askForTimeLeft();
-        super.onResume();
-    }
-
-
-    @Override
-    public Context getContext() {
-        return this;
-    }
-
-    @Override
-    public void updateTime(Long timeLeft) {
-        timeAskingManager.sendUpdateTime(timeLeft);
-    }
-
-    @Override
-    public void stopReminder() {
-        this.timeAskingManager.sendStopTimer();
-    }
-
-    @Override
-    public void pauseReminder() {
-        this.timeAskingManager.sendPauseTimer();
-    }
-
-    @Override
-    public void continueReminder() {
-        this.timeAskingManager.sendContinueTimer();
-    }
-    @Override
-    public void receiveTimeLeft(Long timeLeft) {
-        //this callback is called when asking for time left
-        Log.d("timer", "time left="+timeLeft);
-    }
-
-    @Override
-    public void timerFinish() {
-        //this callback is called when timer drops
-        Log.d("timer", "Timer finish!");
-    }
-
-    @Override
-    protected void onStop() {
-
-        timeAskingManager.unregister();
-        super.onStop();
     }
 
     private void configureMaxValuePicker() {
@@ -189,17 +168,17 @@ public class MainActivity extends Activity implements TimeConsumer {
         this.mCategory.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                category = ( mCategoriesAdapter.getItemId(position) == R.string.food)?
-                        categories.FOOD:
-                        (mCategoriesAdapter.getItemId(position) == R.string.work)?
-                                categories.WORK:
+                category = (mCategoriesAdapter.getItemId(position) == R.string.category_food) ?
+                        categories.FOOD :
+                        (mCategoriesAdapter.getItemId(position) == R.string.category_work) ?
+                                categories.WORK :
                                 categories.SPORT;
 
-                for(int i=0; i < parent.getChildCount(); i++) {
-                    ((ImageView)parent.getChildAt(i).findViewById(R.id.picture)).setColorFilter(Utils.getGrayScaleFilter());
+                for (int i = 0; i < parent.getChildCount(); i++) {
+                    ((ImageView) parent.getChildAt(i).findViewById(R.id.picture)).setColorFilter(ImagesUtil.getGrayScaleFilter());
                     parent.getChildAt(i).setAlpha(0.4f);
                 }
-                ((ImageView)view.findViewById(R.id.picture)).clearColorFilter();
+                ((ImageView) view.findViewById(R.id.picture)).clearColorFilter();
                 view.setAlpha(1);
             }
         });
@@ -224,7 +203,7 @@ public class MainActivity extends Activity implements TimeConsumer {
         this.mTineUnit.setEnabled(enable);
         this.mTimePicker.setEnabled(enable);
         this.startButton.setEnabled(enable);
-        if(enable) {
+        if (enable) {
             this.mLayoutChronometer.setVisibility(View.GONE);
         } else {
             this.stopButton.setVisibility(View.VISIBLE);
@@ -234,8 +213,8 @@ public class MainActivity extends Activity implements TimeConsumer {
         }
     }
 
-    private void startChronometer(int seconds) {
-        mCountDown = new CountDown(seconds*1000, 1000, mChronometer);
+    private void startChronometer(long seconds) {
+        mCountDown = new CountDown(seconds * 1000, 1000, mChronometer);
         mCountDown.setOnFinishEventListener(new CountDown.OnFinishEventListener() {
             @Override
             public void onFinish() {
@@ -253,20 +232,49 @@ public class MainActivity extends Activity implements TimeConsumer {
 
     public void startRemind(View view) {
         Toast.makeText(this, R.string.startReminder, Toast.LENGTH_SHORT).show();
-        this.remindServiceIntent.putExtra("time", new Long(15));//mPicker.getValue() * ((unit == units.MINUTES) ? 60 : 3600));
-        this.remindServiceIntent.putExtra("unit", unit.ordinal());
-        this.remindServiceIntent.putExtra("task", category.ordinal());
 
-        startChronometer(mTimePicker.getValue() * ((unit == units.MINUTES) ? 60 : 3600));
+        startChronometer(getTime());
+
         setEnableMainActivity(false);
-        view.setVisibility(View.GONE);
-        this.stopButton.setVisibility(View.VISIBLE);
-        startService(this.remindServiceIntent);
+        startAlarm();
+    }
 
+    public void stopRemind(View view) {
+        stopAlarm();
     }
-    public void stopRemind(View view){
-        stopService(this.remindServiceIntent);
-        view.setVisibility(View.GONE);
-        this.startButton.setVisibility(View.VISIBLE);
+
+    public void startAlarm() {
+        long time = getTime();
+        NotificationManagerCompat notificationManager = getNotificationManager();
+        notificationManager.cancel(NOTIFICATION_ID);
+
+        Intent removeIntent = new Intent(ACTION_REMOVE_TIMER, null, this, TimerService.class);
+        PendingIntent pendingRemoveIntent = PendingIntent.getService(this, 0, removeIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        Intent showIntent = new Intent( this, MainActivity.class )
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                .putExtra(MainActivity.ACTION_REMOVE_TIMER, 1);
+        PendingIntent pendingShowIntent = PendingIntent.getActivity(this, 0, showIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        Notification notification = NotificationCenter.getNotificationCenter(this).buildAlarmNotification(category.ordinal(), (int) (time*1000), pendingRemoveIntent, pendingShowIntent);
+        notificationManager.notify(NOTIFICATION_ID, notification);
+        registerAlarmManager(time * 1000);
     }
+
+    public void stopAlarm() {
+        NotificationManagerCompat notificationManager = getNotificationManager();
+        notificationManager.cancel(NOTIFICATION_ID);
+    }
+
+
+
+    private void registerAlarmManager(long duration) {
+        AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(ACTION_SHOW_ALARM, null, this, TimerService.class);
+        PendingIntent pendingIntent = PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        long time = System.currentTimeMillis() + duration;
+        alarmManager.setExact(AlarmManager.RTC_WAKEUP, time, pendingIntent);
+    }
+
+
 }
